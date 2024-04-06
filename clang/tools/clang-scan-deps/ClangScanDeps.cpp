@@ -859,6 +859,7 @@ int clang_scan_deps_main(int argc, char **argv, const llvm::ToolContext &) {
             AdjustedArgs.push_back(std::string(ResourceDir));
           }
         }
+        AdjustedArgs.push_back("-fignore-named-module-public-macros");
         AdjustedArgs.insert(AdjustedArgs.end(), FlagsEnd, Args.end());
         return AdjustedArgs;
       });

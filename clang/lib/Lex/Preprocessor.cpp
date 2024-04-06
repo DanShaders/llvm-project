@@ -1309,8 +1309,8 @@ bool Preprocessor::LexAfterModuleImport(Token &Result) {
   }
 
   Module *Imported = nullptr;
-  // We don't/shouldn't load the standard c++20 modules when preprocessing.
-  if (getLangOpts().Modules && !isInImportingCXXNamedModules()) {
+  if (getLangOpts().Modules && !(isInImportingCXXNamedModules() &&
+                                 getLangOpts().IgnoreNamedModulePublicMacros)) {
     Imported = TheModuleLoader.loadModule(ModuleImportLoc,
                                           NamedModuleImportPath,
                                           Module::Hidden,

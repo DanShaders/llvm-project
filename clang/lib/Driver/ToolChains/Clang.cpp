@@ -6816,6 +6816,10 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back("-fapinotes-modules");
   Args.AddLastArg(CmdArgs, options::OPT_fapinotes_swift_version);
 
+  if (Args.hasFlag(options::OPT_fignore_named_module_public_macros,
+                   options::OPT_fno_ignore_named_module_public_macros, false))
+    CmdArgs.push_back("-fignore-named-module-public-macros");
+
   // -fblocks=0 is default.
   if (Args.hasFlag(options::OPT_fblocks, options::OPT_fno_blocks,
                    TC.IsBlocksDefault()) ||

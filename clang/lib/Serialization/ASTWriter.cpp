@@ -2429,14 +2429,11 @@ void ASTWriter::WritePreprocessor(const Preprocessor &PP, bool IsModule) {
   // Construct the list of identifiers with macro directives that need to be
   // serialized.
   SmallVector<const IdentifierInfo *, 128> MacroIdentifiers;
-  // It is meaningless to emit macros for named modules. It only wastes times
-  // and spaces.
-  if (!isWritingStdCXXNamedModules())
-    for (auto &Id : PP.getIdentifierTable())
-      if (Id.second->hadMacroDefinition() &&
-          (!Id.second->isFromAST() ||
-          Id.second->hasChangedSinceDeserialization()))
-        MacroIdentifiers.push_back(Id.second);
+  for (auto &Id : PP.getIdentifierTable())
+    if (Id.second->hadMacroDefinition() &&
+        (!Id.second->isFromAST() ||
+         Id.second->hasChangedSinceDeserialization()))
+      MacroIdentifiers.push_back(Id.second);
   // Sort the set of macro definitions that need to be serialized by the
   // name of the macro, to provide a stable ordering.
   llvm::sort(MacroIdentifiers, llvm::deref<std::less<>>());
@@ -2457,13 +2454,20 @@ void ASTWriter::WritePreprocessor(const Preprocessor &PP, bool IsModule) {
     // do not have sub-modules (although they might import other header units).
     // PCH files, conversely, retain the history of each macro's define/undef
     // and of leaf macros in sub modules.
-    if (IsModule && WritingModule->isHeaderUnit()) {
+    if (IsModule && (WritingModule->isHeaderUnit() ||
+                     WritingModule->isModuleInterfaceUnit())) {
       // This is for the main TU when it is a C++20 header unit.
       // We preserve the final state of defined macros, and we do not emit ones
       // that are undefined.
       if (!MD || shouldIgnoreMacro(MD, IsModule, PP) ||
           MD->getKind() == MacroDirective::MD_Undefine)
         continue;
+
+      if (WritingModule->isModuleInterfaceUnit() &&
+          (MD->getKind() != MacroDirective::MD_Visibility ||
+           !dyn_cast<VisibilityMacroDirective>(MD)->isPublic()))
+        continue;
+
       AddSourceLocation(MD->getLocation(), Record);
       Record.push_back(MD->getKind());
       if (auto *DefMD = dyn_cast<DefMacroDirective>(MD)) {

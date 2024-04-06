@@ -1981,6 +1981,11 @@ defm cxx_modules : BoolFOption<"cxx-modules",
   PosFlag<SetTrue, [], [ClangOption], "Enable">,
   BothFlags<[], [], " modules for C++">>,
   ShouldParseIf<cplusplus.KeyPath>;
+defm ignore_named_module_public_macros: BoolFOption<"ignore-named-module-public-macros",
+  LangOpts<"IgnoreNamedModulePublicMacros">, DefaultFalse,
+  PosFlag<SetTrue, [], [ClangOption, CC1Option],
+          "Ignore public macros in named modules">,
+  NegFlag<SetFalse>>;
 def fdebug_pass_arguments : Flag<["-"], "fdebug-pass-arguments">, Group<f_Group>;
 def fdebug_pass_structure : Flag<["-"], "fdebug-pass-structure">, Group<f_Group>;
 def fdepfile_entry : Joined<["-"], "fdepfile-entry=">,
